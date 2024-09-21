@@ -70,8 +70,8 @@ set_location_assignment PIN_77 -to PSEUDO_GPIO_USING_SDRAM_PINS[13]
 # set_location_assignment PIN_99  -to I2C_SCL
 # set_location_assignment PIN_98  -to I2C_SDA
 
-# set_location_assignment PIN_119 -to PS_CLOCK
-# set_location_assignment PIN_120 -to PS_DATA
+set_location_assignment PIN_119 -to PS_CLOCK
+set_location_assignment PIN_120 -to PS_DATA
 
 # set_location_assignment PIN_100 -to IR
 
