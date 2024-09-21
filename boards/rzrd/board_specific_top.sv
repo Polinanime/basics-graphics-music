@@ -57,11 +57,7 @@ module board_specific_top
 	 // PS/2 pins
 
     input                       PS_CLOCK,
-    inout                       PS_DATA,
-
-    // Buzzer
-
-    output                      BUZZER
+    inout                       PS_DATA
 );
 
     //------------------------------------------------------------------------
@@ -143,11 +139,7 @@ module board_specific_top
 		  // PS/2 pins
 
 		 .ps_clock(    PS_CLOCK ),
-		 .ps_data ( 	PS_DATA  ),
-
-		 // Buzzer
-
-		 .buzzer  (   BUZZER		)
+		 .ps_data ( 	PS_DATA  )
 
     );
 
