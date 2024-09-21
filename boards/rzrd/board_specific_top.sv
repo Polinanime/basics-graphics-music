@@ -52,7 +52,16 @@ module board_specific_top
     inout                  LCD_RS,
     inout                  LCD_RW,
     inout                  LCD_E,
-    inout  [          7:0] LCD_D
+    inout  [          7:0] LCD_D,
+	 
+	 // PS/2 pins
+
+    input                       PS_CLOCK,
+    inout                       PS_DATA,
+
+    // Buzzer
+
+    output                      BUZZER
 );
 
     //------------------------------------------------------------------------
@@ -126,10 +135,20 @@ module board_specific_top
         .sound    (   sound        ),
 
         `ifdef USE_SDRAM_PINS_AS_GPIO
-            .gpio ( PSEUDO_GPIO_USING_SDRAM_PINS )
+            .gpio ( PSEUDO_GPIO_USING_SDRAM_PINS ),
         `elsif USE_LCD_AS_GPIO
-            .gpio ({ LCD_RS, LCD_RW, LCD_E, LCD_D })
+            .gpio ({ LCD_RS, LCD_RW, LCD_E, LCD_D }),
         `endif
+		  
+		  // PS/2 pins
+
+		 .ps_clock(    PS_CLOCK ),
+		 .ps_data ( 	PS_DATA  ),
+
+		 // Buzzer
+
+		 .buzzer  (   BUZZER		)
+
     );
 
     //------------------------------------------------------------------------
