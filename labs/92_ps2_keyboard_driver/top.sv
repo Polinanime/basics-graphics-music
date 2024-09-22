@@ -58,60 +58,62 @@ module top
 
 );
 
-	reg [31:0]  data;
-	reg [31:0] 	hold;
+	logic [w_digit-1:0][7:0] segment_shift_reg;
 
-   reg [7:0]	pskey;
-
-	wire        flag;
-
-   wire [7:0] letterCnt;
-	 
+	wire        ps2_valid;
 	wire [7:0]	ps2_ascii;
-	
-	wire [7:0]	ps2_segment;
-	
-	wire			ps_enable;
-	
-	wire			fifo_empty;
-	wire 			fifo_overflow;
-	
-	initial begin
-		data <= 0;
-		hold <= 0;
-		ps_enable <= 1;
-		flag <= 1;
+	wire [7:0]	ps2_segment, segment_r;
+
+	always_ff @ (posedge clk) begin
+		if (rst)
+			segment_r <= '0;
+		else if (ps2_valid & ps2_pressed)
+		    segment_r <= ps2_segment;
+
 	end
 	 
-	 always_ff @ ( posedge clk ) begin
-		if ( rst	 ) begin
-				data <= '0;
+	 always_ff @ (posedge clk) begin
+		if (rst) begin
+			segment_shift_reg <= '0;
 		end
-		if ( flag ) begin
-            data [31:24] <= data [23:16];
-            data [23:16] <= data [15:8];
-            data [15: 8] <= data [7:0];
-            data [ 7: 0] <= ps2_segment;
-
-            letterCnt <= letterCnt + 1;
+		if ( ps2_valid ) begin
+			segment_shift_reg <= { segment_shift_reg[w_digit-2:0], ps2_segment };
 		end
 	end
 	
     //------------------------------------------------------------------------
 
     // seven-segment display output
-    always_ff @ ( posedge clk ) begin
-        if ( rst ) begin
-            abcdefgh <= '0;
-				digit 	<= '0;
-				// led 		<= '0;
-        end 
-        else begin
-            abcdefgh <= data[7:0];
-            // led      <= letterCnt;
-            digit    <= 'b1010; //letterCnt;
-        end
-    end
+
+    logic [31:0] cnt;
+
+    always_ff @ (posedge clk or posedge rst)
+        if (rst)
+            cnt <= '0;
+        else
+            cnt <= cnt + 1'd1;
+
+    wire diplay_shift_enable = (cnt [17:0] == '0);
+
+    logic [w_digit:0] digit_display_idx;
+    always_ff @ (posedge clk or posedge rst)
+      if (rst)
+        digit_display_idx <= w_digit' (1);
+      else if (diplay_shift_enable)
+        digit_display_idx <= { digit_display_idx [0], digit_display_idx [w_digit - 1:1] };
+
+	// assign abcdefgh = | (segment_shift_reg & {8 {digit_display_idx}});
+	always_comb begin
+		abcdefgh = '0;
+		for(int i = 0; i < w_digit; i++) begin
+			if(digit_display_idx>>i)
+				abcdefgh = segment_shift_reg[i];
+		end
+	end
+
+	// assign digit    = digit_display_idx;
+	// assign abcdefgh = segment_r;
+	assign digit    = digit_display_idx;
     
     //------------------------------------------------------------------------
 	 
@@ -121,8 +123,8 @@ module top
         .PS2_DATA 	( ps_data   ),
 		.LED 	  	( led ),
 		
-        .CODEWORD  	( pskey  ), 
-        .TRIG_ARR 	( flag ) ,
+        .ps2_scancode  	(   ), 
+        .ps2_valid 	( ps2_valid ) ,
 		.ASCII 		( ps2_ascii )
     );
 	 

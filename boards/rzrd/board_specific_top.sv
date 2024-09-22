@@ -56,8 +56,8 @@ module board_specific_top
 	 
 	 // PS/2 pins
 
-    input                       PS_CLOCK,
-    inout                       PS_DATA
+    input                  PS_CLOCK,
+    inout                  PS_DATA
 );
 
     //------------------------------------------------------------------------
