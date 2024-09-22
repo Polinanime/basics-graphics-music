@@ -5,7 +5,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-module ps2(
+module ps2_keyboard (
 	input CLK,	//board clock
    input PS2_CLK,	//keyboard clock and data signals
    input PS2_DATA,
@@ -14,8 +14,8 @@ module ps2(
 //	output reg [3:0]COUNT,
 	output reg TRIG_ARR,
 	output reg [7:0]CODEWORD,
-   output reg [7:0] LED	//8 LEDs
-//	output reg [7:0] abcdefgh
+    output reg [7:0] LED,	//8 LEDs
+	output reg [7:0] ASCII
    );
 
 	wire [7:0] ARROW_UP = 8'h75;	//codes for arrows
@@ -35,9 +35,6 @@ module ps2(
 	reg [3:0]COUNT;				//tells how many bits were received until now (from 0 to 11)
 	reg TRIGGER = 0;			//This acts as a 250 times slower than the board clock. 
 	reg [7:0]DOWNCOUNTER = 0;		//This is used together with TRIGGER - look the code
-	
-	wire	[7:0]	ascii;
-	wire	[7:0]	segment;
 
 	//Set initial values
 	initial begin
@@ -85,7 +82,7 @@ module ps2(
 		else if (COUNT == 11) begin				//if it already received 11 bits
 			COUNT <= 0;
 			read <= 0;					//mark down that reading stopped
-			TRIG_ARR <= 1;					//trigger out that the full pack of 11bits was received
+			TRIG_ARR <= 1;					//trigger  abcdefgh that the full pack of 11bits was received
 			//calculate scan_err using parity bit
 			if (!scan_code[10] || scan_code[0] || !(scan_code[1]^scan_code[2]^scan_code[3]^scan_code[4]
 				^scan_code[5]^scan_code[6]^scan_code[7]^scan_code[8]
@@ -120,7 +117,7 @@ module ps2(
 		end
 		else CODEWORD <= 8'd0;					//no clock trigger, no data…
 	end
-	
+
 	always @(posedge CLK) begin
 	//if (TRIGGER) begin
 	//	if (TRIG_ARR) begin
@@ -131,29 +128,19 @@ module ps2(
 			LED <= LED - 1;					//count down LED register 
 		else if (CODEWORD == 8'h15 )		// Q - set count to 0
 			LED <= 8'b00000000;
-		//else										// display symbol on 7segment		
-		//	abcdefgh <= segment;
-		
-		
 
 			//if (CODEWORD == EXTENDED)			//For example you can check here if specific codewords were received
 			//if (CODEWORD == RELEASED)
 		//end
 	//end
 	end
-	
+
 	//---------------------------------------------------------------------------------
-	
+
 	key2ascii key2ascii (
 		  .clk			( CLK ),
-		  .ps2_byte_r  ( CODEWORD ),
-		  .ps2_asci  	( ascii )
-	 );
-	 
-	 ascii2segment ascii2segment (
-		  .clk			( CLK 		),
-		  .ascii			( ascii		),
-		  .out			( segment	)
+		  .ps2_byte_r	( CODEWORD ),
+		  .ps2_asci		( ASCII )
 	 );
 	
 	//---------------------------------------------------------------------------------
@@ -163,8 +150,8 @@ endmodule
 
 
 module key2ascii (
-	input					clk,
-	input  	  [7:0]	ps2_byte_r,
+	input				clk,
+	input  	   [7:0]	ps2_byte_r,
 	output reg [7:0]	ps2_asci
 );
 
@@ -211,75 +198,5 @@ module key2ascii (
 			default: ;//space
 			endcase
 	end
-
-endmodule
-
-module ascii2segment (
-	input						clk,
-	input			 [7:0]	ascii,
-	output	reg [7:0] 	out
-);
-
-    //   --a--
-    //  |     |
-    //  f     b
-    //  |     |
-    //   --g--
-    //  |     |
-    //  e     c
-    //  |     |
-    //   --d--  h
-
-	always @ ( posedge clk ) begin
-	  case(ascii)
-		 8'h20:out <= 8'b00000000;//space
-		 8'h2E:out <= 8'b00000001;//.
-		 8'h30:out <= 8'b11111100;//0
-		 8'h31:out <= 8'b01100000;//1
-		 8'h32:out <= 8'b11011010;//2
-		 8'h33:out <= 8'b11110010;//3
-		 8'h34:out <= 8'b01100110;//4
-		 8'h35:out <= 8'b10110110;//5
-		 8'h36:out <= 8'b00111110;//6
-		 8'h37:out <= 8'b11100000;//7
-		 8'h38:out <= 8'b11111110;//8
-		 8'h39:out <= 8'b11100110;//9
-		 
-		 8'h41:out <= 8'b11101110;//A
-		 8'h42:out <= 8'b11111110;//B
-		 8'h43:out <= 8'b10011100;//C
-		 8'h44:out <= 8'b01111010;//D
-		 8'h45:out <= 8'b10011110;//E
-		 8'h46:out <= 8'b10101100;//F
-		 8'h47:out <= 8'b10111100;//G
-		 8'h48:out <= 8'b01101110;	// 8'b01101110;//H
-
-		 8'h49:out <= 8'b00001100;//I
-		 8'h4A:out <= 8'b01110000;//J
-		 8'h4B:out <= 8'b00000010;//K -
-		 8'h4C:out <= 8'b00011100;//L
-		 8'h4D:out <= 8'b00000010;//M -
-		 8'h4E:out <= 8'b00101010;//N
-		 8'h4F:out <= 8'b00111010;//O
-		 8'h50:out <= 8'b00101100;//P
-		 8'h51:out <= 8'b11100110;//Q
-		 8'h52:out <= 8'b00001010;//R
-		 8'h53:out <= 8'b10110110;//S
-		 8'h54:out <= 8'b00011110;//T
-		 8'h55:out <= 8'b00111000;//U
-		 8'h56:out <= 8'b00000010;//V
-		 8'h57:out <= 8'b01010100;//W
-		 8'h58:out <= 8'b00000010;//X
-		 8'h59:out <= 8'b01110110;//Y
-		 8'h5A:out <= 8'b00011100;//Z
-
-
-
-
-         
-	  default:
-		 out <= 8'b00000010; // -
-	  endcase
-  end
 
 endmodule

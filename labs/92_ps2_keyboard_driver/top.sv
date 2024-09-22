@@ -109,34 +109,27 @@ module top
         else begin
             abcdefgh <= data[7:0];
             // led      <= letterCnt;
-            digit    <= '1; //letterCnt;
-				ps_enable <= '1;
+            digit    <= 'b1010; //letterCnt;
         end
     end
     
     //------------------------------------------------------------------------
 	 
-     ps2 keyboard ( 
-        .CLK ( clk ),
-        .PS2_CLK  ( ps_clock  ),
-        .PS2_DATA ( ps_data   ),
-		  .LED ( led ),
-		  
-        .CODEWORD  ( pskey  ), 
-        .TRIG_ARR ( flag ) ,
-		  // .abcdefgh ( abcdefgh )
+     ps2_keyboard keyboard ( 
+        .CLK 		( clk ),
+        .PS2_CLK  	( ps_clock  ),
+        .PS2_DATA 	( ps_data   ),
+		.LED 	  	( led ),
+		
+        .CODEWORD  	( pskey  ), 
+        .TRIG_ARR 	( flag ) ,
+		.ASCII 		( ps2_ascii )
     );
-		  
-	 key2ascii key2ascii (
-		  .clk			( clk ),
-		  .ps2_byte_r	( pskey ),
-		  .ps2_asci		( ps2_ascii)
-	 );
 	 
 	 ascii2segment ascii2segment (
 		  .clk			( clk ),
 		  .ascii		( ps2_ascii	  ),
-		  .out			( ps2_segment )
+		  .abcdefgh		( ps2_segment )
 	 );
 	 
     
